@@ -7,271 +7,212 @@ import {
   Button,
   useColorModeValue,
   SimpleGrid,
+  useDisclosure,
   Image,
-  Grid,
-  GridItem,
-  Divider,
+  Modal,
+  ModalBody,
+  ModalCloseButton,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  ModalOverlay,
+  Icon,
+  InputGroup,
+  Input,
+  InputLeftElement,
 } from "@chakra-ui/react";
+import { observer } from "mobx-react-lite";
+import { Asset } from "@chain-registry/types";
+import { ChevronDownIcon, SearchIcon } from "@chakra-ui/icons";
 
-import { chain, assets, asset_list } from '@chain-registry/osmosis';
-interface PoolsData {
-  id: string;
-  token1: { name: string; imgSrc: string };
-  token2: { name: string; imgSrc: string };
-  poolLiquidity: number;
-  apr: number;
-  myLiquidity: number;
-  myBoundedAmount: number;
-  longestDaysUnbonding: boolean;
-}
+import { RootStore } from "../store";
+import PoolsCard from "./pools-card";
 
-const PoolsCard = ({ poolsData }: { poolsData: PoolsData[] }) => {
+const TokenSelect = ({
+  imgSrc,
+  symbol,
+  onOpen,
+}: {
+  imgSrc: string;
+  symbol: string;
+  onOpen: () => void;
+}) => {
   return (
-    <SimpleGrid columns={{ sm: 2, lg: 4 }} gap={4} mb={8}>
-      {poolsData.map(
-        ({
-          id,
-          token1,
-          token2,
-          poolLiquidity,
-          apr,
-          myLiquidity,
-          myBoundedAmount,
-          longestDaysUnbonding,
-        }) => {
-          return (
-            <Box
-              key={id}
-              borderRadius="lg"
-              border="1px solid"
-              borderColor={
-                longestDaysUnbonding
-                  ? useColorModeValue("primary.500", "primary.300")
-                  : "transparent"
-              }
-              boxShadow="md"
-              _hover={{
-                cursor: "pointer",
-                borderColor: longestDaysUnbonding
-                  ? useColorModeValue("primary.500", "primary.300")
-                  : "orange.300",
-              }}
-              bg={useColorModeValue("blackAlpha.50", "whiteAlpha.50")}
-              p={4}
-            >
-              <Flex align="center" mb={4}>
-                <Flex
-                  position="relative"
-                  align="center"
-                  pr={{ base: 10, sm: 14 }}
-                >
-                  <Box
-                    w={{ base: 12, md: 14, lg: 16 }}
-                    h={{ base: 12, md: 14, lg: 16 }}
-                    bg="whiteAlpha.900"
-                    borderRadius="full"
-                    border="1px solid"
-                    borderColor={useColorModeValue(
-                      "primary.100",
-                      "primary.900"
-                    )}
-                    overflow="hidden"
-                    p={0.5}
-                  >
-                    <Image src={token1.imgSrc} />
-                  </Box>
-                  <Box
-                    position="absolute"
-                    left={{ base: 8, sm: 10 }}
-                    w={{ base: 12, md: 14, lg: 16 }}
-                    h={{ base: 12, md: 14, lg: 16 }}
-                    bg="whiteAlpha.900"
-                    borderRadius="full"
-                    border="1px solid"
-                    borderColor={useColorModeValue(
-                      "primary.100",
-                      "primary.900"
-                    )}
-                    overflow="hidden"
-                    p={0.5}
-                  >
-                    <Image src={token2.imgSrc} />
-                  </Box>
-                </Flex>
-                <Flex flexDirection="column" justify="center">
-                  <Text fontSize="xl" fontWeight="extrabold">
-                    Pools #{id}
-                  </Text>
-                  <Text
-                    fontWeight="bold"
-                    color={useColorModeValue(
-                      "blackAlpha.600",
-                      "whiteAlpha.600"
-                    )}
-                    wordBreak="break-word"
-                  >
-                    {token1.name}/{token2.name}
-                  </Text>
-                </Flex>
-              </Flex>
-              <Grid
-                templateColumns={{ lg: "1fr 1fr" }}
-                gap={{ base: 2, md: 4 }}
-              >
-                <GridItem>
-                  <Text
-                    fontWeight="semibold"
-                    color={useColorModeValue(
-                      "blackAlpha.600",
-                      "whiteAlpha.600"
-                    )}
-                  >
-                    Pool Liquidity
-                  </Text>
-                  <Text
-                    fontSize={{ base: "lg", sm: "xl" }}
-                    fontWeight="extrabold"
-                    wordBreak="break-word"
-                  >
-                    ${poolLiquidity.toLocaleString()}
-                  </Text>
-                </GridItem>
-                <GridItem>
-                  <Text
-                    fontWeight="semibold"
-                    color={useColorModeValue(
-                      "blackAlpha.600",
-                      "whiteAlpha.600"
-                    )}
-                  >
-                    Apr
-                  </Text>
-                  <Text
-                    fontSize={{ base: "lg", sm: "xl" }}
-                    fontWeight="extrabold"
-                  >
-                    {apr}%
-                  </Text>
-                </GridItem>
-                <GridItem colSpan={{ lg: 2 }}>
-                  <Divider
-                    borderColor={useColorModeValue(
-                      "primary.300",
-                      "primary.100"
-                    )}
-                  />
-                </GridItem>
-                <GridItem>
-                  <Text
-                    fontWeight="semibold"
-                    color={useColorModeValue(
-                      "blackAlpha.600",
-                      "whiteAlpha.600"
-                    )}
-                  >
-                    My Liquidity
-                  </Text>
-                  <Text
-                    fontSize={{ base: "lg", sm: "xl" }}
-                    fontWeight="extrabold"
-                  >
-                    ${myLiquidity}
-                  </Text>
-                </GridItem>
-                <GridItem>
-                  <Text
-                    fontWeight="semibold"
-                    color={useColorModeValue(
-                      "blackAlpha.600",
-                      "whiteAlpha.600"
-                    )}
-                  >
-                    My Bounded Amount
-                  </Text>
-                  <Text
-                    fontSize={{ base: "lg", sm: "xl" }}
-                    fontWeight="extrabold"
-                  >
-                    ${myBoundedAmount}
-                  </Text>
-                </GridItem>
-              </Grid>
-            </Box>
-          );
-        }
-      )}
-    </SimpleGrid>
+    <Box
+      h={20}
+      mb={4}
+      px={4}
+      borderWidth="1px"
+      borderRadius="lg"
+      overflow="hidden"
+    >
+      <Flex
+        w="40%"
+        h="100%"
+        align="center"
+        _hover={{ cursor: "pointer" }}
+        onClick={onOpen}
+      >
+        <Image
+          w={{ base: 10, md: 12, lg: 14 }}
+          h={{ base: 10, md: 12, lg: 14 }}
+          src={imgSrc}
+          mr={2}
+        />
+        <Heading as="h2" fontSize="2xl" ml={2} mr={1}>
+          {symbol}
+        </Heading>
+        <Icon as={ChevronDownIcon} w={6} h={6} />
+      </Flex>
+    </Box>
   );
 };
 
-export default function ListPools() {
-  const [poolsData, setPoolsData] = useState<PoolsData[]>([]);
+const ListPools = ({ store }: { store: RootStore }) => {
+  const { poolStore, assetStore } = store;
 
-  useEffect(() => {
-    const getShuffledArr = (arr: any[]) => {
-      for (let i = arr.length - 1; i > 0; i--) {
-        const rand = Math.floor(Math.random() * (i + 1));
-        [arr[i], arr[rand]] = [arr[rand], arr[i]];
-      }
-      return arr;
-    };
-    const allTokens = asset_list.assets.map(({ name, logo_URIs }) => ({
-      name: name,
-      imgSrc: logo_URIs.png,
-    }));
-    const poolOptionToken1 = getShuffledArr([...allTokens]);
-    const poolOptionToken2 = getShuffledArr([...allTokens]).filter(
-      (v, i) => v !== poolOptionToken1[i]
-    );
-    const getRandomId = getShuffledArr(
-      [...Array(500)].map((v, i) => (v = i + 1))
-    ).slice(0, 4);
-    const getRandomPoolLiquidity = [...Array(4)].fill(undefined).map((_) => {
-      return parseInt(
-        getShuffledArr([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
-          .toString()
-          .replaceAll(",", "")
-      );
-    });
-    const getRandomMyLiquidity = [...Array(4)].fill(undefined).map((_) => {
-      return parseInt(
-        getShuffledArr([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
-          .toString()
-          .slice(0, 5)
-          .replaceAll(",", "")
-      );
-    });
-    const getRandomAPR = [...Array(4)].fill(undefined).map((_) => {
-      return (
-        parseInt(
-          getShuffledArr([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
-            .toString()
-            .slice(0, 7)
-            .replaceAll(",", "")
-        ) / 100
-      );
-    });
-    const getDefaultData = [...Array(4)].fill(undefined).map((_, i) => ({
-      id: getRandomId[i],
-      token1: poolOptionToken1[i],
-      token2: poolOptionToken2[i],
-      poolLiquidity: getRandomPoolLiquidity[i],
-      apr: getRandomAPR[i],
-      myLiquidity: getRandomMyLiquidity[i],
-      myBoundedAmount: getRandomMyLiquidity[i],
-      longestDaysUnbonding: Math.random() < 0.5,
-    }));
-    // console.log("getRandomAPR", getDefaultData);
-    setPoolsData(getDefaultData);
-  }, []);
+  const [selectedAssets, setSelectedAssets] = useState<Asset[]>([
+    assetStore.chain.assets[0],
+    assetStore.chain.assets[1],
+  ]);
+  const [currentSelect, setCurrentSelect] = useState<number>(0);
+
+  const {
+    isOpen: isNewPoolModalOpen,
+    onOpen: onNewPoolModalOpen,
+    onClose: onNewPoolModalClose,
+  } = useDisclosure();
+  const {
+    isOpen: isTokensModalOpen,
+    onOpen: onTokensModalOpen,
+    onClose: onTokensModalClose,
+  } = useDisclosure();
+
+  const onAddPool = () => {
+    poolStore.addPool(selectedAssets[0], selectedAssets[1]);
+    onNewPoolModalClose();
+  };
+
+  const isSameToken = () => {
+    return selectedAssets[0].base === selectedAssets[1].base;
+  };
+
+  const handleSelectClick = (num: number) => {
+    setCurrentSelect(num);
+    onTokensModalOpen();
+    assetStore.updateFilter("");
+  };
 
   return (
     <Box p={4}>
+      <Modal isOpen={isNewPoolModalOpen} onClose={onNewPoolModalClose}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Create New Pool</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <TokenSelect
+              imgSrc={selectedAssets[0].logo_URIs.png}
+              symbol={selectedAssets[0].symbol}
+              onOpen={() => handleSelectClick(0)}
+            />
+            <TokenSelect
+              imgSrc={selectedAssets[1].logo_URIs.png}
+              symbol={selectedAssets[1].symbol}
+              onOpen={() => handleSelectClick(1)}
+            />
+            {isSameToken() && (
+              <Text as="i" color="red.500">
+                *The two tokens can't be the same.
+              </Text>
+            )}
+          </ModalBody>
+          <ModalFooter>
+            <Button variant="outline" mr={3} onClick={onNewPoolModalClose}>
+              Cancel
+            </Button>
+            <Button
+              colorScheme="blue"
+              onClick={onAddPool}
+              disabled={isSameToken()}
+            >
+              Add Pool
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+
+      <Modal isOpen={isTokensModalOpen} onClose={onTokensModalClose}>
+        <ModalOverlay bg="blackAlpha.800" />
+        <ModalContent>
+          <ModalBody>
+            <InputGroup my={4}>
+              <InputLeftElement
+                pointerEvents="none"
+                children={<SearchIcon color="gray.300" />}
+              />
+              <Input
+                type="tel"
+                placeholder="Search tokens"
+                value={assetStore.filter}
+                onChange={(e) => assetStore.updateFilter(e.target.value)}
+              />
+            </InputGroup>
+            <Box maxH={400} overflow="scroll" pr={4}>
+              {assetStore.filteredAssets.map((asset) => {
+                return (
+                  <Box
+                    h={20}
+                    mb={2}
+                    px={2}
+                    key={asset.base}
+                    onClick={() => {
+                      setSelectedAssets((prev) =>
+                        prev.map((v, i) => {
+                          if (i === currentSelect) return asset;
+                          return v;
+                        })
+                      );
+                      onTokensModalClose();
+                    }}
+                    borderRadius="lg"
+                    overflow="hidden"
+                    _hover={{
+                      cursor: "pointer",
+                      background: "blackAlpha.50",
+                    }}
+                  >
+                    <Flex h="100%" align="center">
+                      <Image
+                        w={{ base: 10, md: 12, lg: 14 }}
+                        h={{ base: 10, md: 12, lg: 14 }}
+                        src={asset.logo_URIs.png}
+                        mr={2}
+                      />
+                      <Heading as="h2" fontSize="2xl" ml={2} mr={1}>
+                        {asset.symbol}
+                      </Heading>
+                    </Flex>
+                  </Box>
+                );
+              })}
+            </Box>
+          </ModalBody>
+        </ModalContent>
+      </Modal>
+
       <Flex align="center" mb={6}>
         <Heading as="h2" fontSize="2xl" mr={4}>
           Active Pools
         </Heading>
-        <Button display={{ base: "none", sm: "block" }}>Create New Pool</Button>
+        {poolStore.poolsData.length > 0 && (
+          <Button
+            display={{ base: "none", sm: "block" }}
+            onClick={onNewPoolModalOpen}
+          >
+            Create New Pool
+          </Button>
+        )}
       </Flex>
       <SimpleGrid columns={{ sm: 2 }} gap={4} maxW={{ sm: "md" }} mb={8}>
         <Box>
@@ -333,8 +274,32 @@ export default function ListPools() {
         <Text fontSize="2xl" fontWeight="bold" mb={4}>
           My Pools
         </Text>
-        <PoolsCard poolsData={poolsData} />
+        {poolStore.poolsData.length > 0 ? (
+          <PoolsCard poolsData={poolStore.poolsData} />
+        ) : (
+          <Box
+            h={100}
+            display="flex"
+            flexDir="column"
+            alignItems="center"
+            justifyContent="center"
+            gap={2}
+            mb={50}
+          >
+            <Text fontSize="2xl">No pools here.</Text>
+            <Button
+              colorScheme="teal"
+              onClick={onNewPoolModalOpen}
+              variant="solid"
+              size="md"
+            >
+              Create New Pool
+            </Button>
+          </Box>
+        )}
       </Box>
     </Box>
   );
-}
+};
+
+export default observer(ListPools);
